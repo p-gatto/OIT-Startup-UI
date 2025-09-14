@@ -26,7 +26,7 @@ import { SidenavComponent } from './core/frame/sidenav/sidenav.component';
       <mat-sidenav-container class="app-sidenav-container">
 
           <!-- Sidebar Component -->
-          <mat-sidenav #sidenav mode="over" class="app-sidenav" [opened]="sidebarOpen" (closed)="sidebarOpen = false">
+          <mat-sidenav #sidenav mode="side" class="app-sidenav" [opened]="sidebarOpen" (closed)="sidebarOpen = false">
               <app-sidenav (navigationClick)="onNavigation($event)"></app-sidenav>
           </mat-sidenav>
 

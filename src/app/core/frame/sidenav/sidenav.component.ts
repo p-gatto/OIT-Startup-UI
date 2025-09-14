@@ -1,22 +1,20 @@
 import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
+
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule, MatNavList } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 
+import { ConfigService } from '../../config/config.service';
 import { MenuSection } from './menu-section.model';
-import { Router, RouterLink } from '@angular/router';
 import { MenuService } from '../../management/menu/menu.service';
 import { MenuGroupDto } from '../../management/menu/menu.model';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ConfigService } from '../../config/config.service';
 
 @Component({
   selector: 'app-sidenav',
   imports: [
-    NgIf,
-    NgFor,
     MatSidenavModule,
     MatIconModule,
     MatNavList,

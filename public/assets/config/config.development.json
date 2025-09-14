@@ -1,5 +1,5 @@
 {
-  "apiBaseUrl": "https://localhost",
+  "apiBaseUrl": "https://localhost:5050",
   "appName": "La Mia App Angular 20 - Development Env",
   "features": {
     "darkMode": true,

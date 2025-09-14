@@ -5,8 +5,8 @@
     </div>
 
     <div class="sidebar-content">
-
-        <div *ngFor="let menuItem of menu" class="menu-section">
+        @for (menuItem of menu; track menuItem.id) {
+        <div class="menu-section">
             <!-- Gruppo principale come tendina -->
             <div class="section-header" (click)="toggleSection(menuItem.title)">
                 <div class="section-title">{{ menuItem.title }}</div>
@@ -18,7 +18,8 @@
             <!-- Contenuto del gruppo (collassabile) -->
             <div class="section-content" [class.expanded]="isSectionExpanded(menuItem.title)">
                 <mat-nav-list class="section-list">
-                    <div *ngFor="let item of menuItem.items" class="menu-item-container">
+                    @for (item of menuItem.items; track item.id) {
+                    <div class="menu-item-container">
                         <!-- Item senza figli -->
                         <mat-list-item *ngIf="!item.children" (click)="navigateTo(item.route!, item.queryParams)"
                             class="menu-item">
@@ -27,7 +28,8 @@
                         </mat-list-item>
 
                         <!-- Item con figli (2° livello) -->
-                        <div *ngIf="item.children" class="menu-group">
+                        @if (item.children) {
+                        <div class="menu-group">
                             <div class="parent-item" (click)="toggleGroup(item.title)">
                                 <mat-icon class="parent-icon">{{ item.icon }}</mat-icon>
                                 <span class="parent-title">{{ item.title }}</span>
@@ -37,21 +39,25 @@
                             </div>
 
                             <div class="children-container" [class.expanded]="isGroupExpanded(item.title)">
-                                <mat-list-item *ngFor="let child of item.children"
-                                    (click)="navigateTo(child.route!, child.queryParams)" class="child-item">
+                                @for (child of item.children; track child.id) {
+                                <mat-list-item (click)="navigateTo(child.route!, child.queryParams)" class="child-item">
                                     <mat-icon matListItemIcon>{{ child.icon }}</mat-icon>
                                     <span matListItemTitle>{{ child.title }}</span>
                                 </mat-list-item>
+                                }
                             </div>
                         </div>
+                        }
                     </div>
+                    }
                 </mat-nav-list>
             </div>
 
-            <mat-divider class="section-divider" *ngIf="isSectionExpanded(menuItem.title) && !isLastSection(menuItem)">
-            </mat-divider>
+            @if (isSectionExpanded(menuItem.title) && !isLastSection(menuItem)) {
+            <mat-divider class="section-divider"></mat-divider>
+            }
         </div>
-
+        }
     </div>
 
 </div>

@@ -16,7 +16,7 @@ export class MenuService {
   http = inject(HttpClient);
   configService = inject(ConfigService);
 
-  menuBaseUrl = signal('http://localhost:6000');
+  menuBaseUrl = signal('http://localhost:5000');
 
   private menuStructureSubject = new BehaviorSubject<MenuGroupDto[]>([]);
   public menuStructure$ = this.menuStructureSubject.asObservable();
