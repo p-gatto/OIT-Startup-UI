@@ -1,0 +1,440 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Gestione Menu</h1>
+            <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                <mat-icon>add</mat-icon>
+                Nuovo Gruppo
+            </button>
+        </div>
+
+        <!-- Main Accordion for Groups -->
+        <mat-accordion class="space-y-4" cdkDropList (cdkDropListDropped)="dropGroup($event)" multi>
+            <mat-expansion-panel *ngFor="let group of menuGroups; trackBy: trackByGroupId; let groupIndex = index"
+                cdkDrag
+                class="shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg overflow-hidden border-0">
+
+                <!-- Group Header -->
+                <mat-expansion-panel-header
+                    class="bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200">
+                    <mat-panel-title class="text-white flex-1">
+                        <div class="flex items-center justify-between w-full pr-6">
+                            <div class="flex items-center gap-3">
+                                <mat-icon cdkDragHandle
+                                    class="cursor-move hover:text-blue-200">drag_indicator</mat-icon>
+                                <span class="text-lg font-semibold">{{ group.title }}</span>
+                                <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-medium">
+                                    {{ group.items.length || 0 }} elementi
+                                </span>
+                            </div>
+                            <div class="flex gap-1" (click)="$event.stopPropagation()">
+                                <!--  <button mat-icon-button (click)="toggleGroupExpansion(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20 transition-colors"
+                                    matTooltip="Espandi/Comprimi">
+                                    <mat-icon>{{ group.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                </button> -->
+                                <button mat-icon-button (click)="openGroupDialog(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20 transition-colors"
+                                    matTooltip="Modifica Gruppo">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="deleteGroup(group)"
+                                    class="text-white hover:bg-red-200 hover:bg-opacity-30 transition-colors"
+                                    matTooltip="Elimina Gruppo">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="openItemDialog(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20 transition-colors"
+                                    matTooltip="Aggiungi Elemento">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <!-- Group Content -->
+                <div class="bg-white">
+                    <!-- Group Description (if exists) -->
+                    <div *ngIf="group.title" class="px-6 pt-4 pb-2">
+                        <p class="text-sm text-gray-600 italic">{{ group.title }}</p>
+                    </div>
+
+                    <!-- Items List -->
+                    <div class="p-4" cdkDropList (cdkDropListDropped)="dropItem($event, group)">
+                        <div class="space-y-3">
+                            <div *ngFor="let item of group.items; trackBy: trackByItemId; let itemIndex = index" cdkDrag
+                                class="bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 group">
+
+                                <!-- Main Item -->
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3 flex-1">
+                                            <mat-icon cdkDragHandle
+                                                class="text-gray-400 cursor-move hover:text-gray-600">
+                                                drag_indicator
+                                            </mat-icon>
+                                            <mat-icon *ngIf="item.icon" class="text-gray-600">{{ item.icon }}</mat-icon>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <h4 class="font-medium text-gray-900">{{ item.title }}</h4>
+                                                    <span *ngIf="!item.isActive"
+                                                        class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                                                        Inattivo
+                                                    </span>
+                                                    <span *ngIf="item.children && item.children.length > 0"
+                                                        class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                                        {{ item.children.length }} sotto-elementi
+                                                    </span>
+                                                </div>
+                                                <p *ngIf="item.route" class="text-sm text-gray-500 mt-1">
+                                                    <mat-icon class="text-xs mr-1">link</mat-icon>{{ item.route }}
+                                                </p>
+                                                <p *ngIf="item.title" class="text-sm text-gray-600 mt-1">{{ item.title
+                                                    }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button mat-icon-button *ngIf="item.children && item.children.length > 0"
+                                                (click)="toggleItemExpansion(item)"
+                                                class="text-gray-600 hover:bg-gray-200"
+                                                matTooltip="Espandi/Comprimi sotto-elementi">
+                                                <mat-icon>{{ item.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                            </button>
+                                            <button mat-icon-button (click)="openItemDialog(group, item)"
+                                                class="text-gray-600 hover:bg-gray-200" matTooltip="Modifica Elemento">
+                                                <mat-icon>edit</mat-icon>
+                                            </button>
+                                            <button mat-icon-button (click)="addChildItem(group, item)"
+                                                class="text-green-600 hover:bg-green-100"
+                                                matTooltip="Aggiungi Sotto-elemento">
+                                                <mat-icon>add_circle_outline</mat-icon>
+                                            </button>
+                                            <button mat-icon-button (click)="deleteItem(item)"
+                                                class="text-red-600 hover:bg-red-100" matTooltip="Elimina Elemento">
+                                                <mat-icon>delete</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Children Items (Expandable) -->
+                                <div *ngIf="item.children && item.children.length > 0 && item.expanded"
+                                    class="border-t border-gray-200 bg-gray-25">
+                                    <div class="p-4 pl-12">
+                                        <div class="space-y-2">
+                                            <div class="text-sm font-medium text-gray-600 mb-3 flex items-center gap-2">
+                                                <mat-icon class="text-sm">subdirectory_arrow_right</mat-icon>
+                                                Sotto-elementi ({{ item.children.length }})
+                                            </div>
+                                            <div *ngFor="let child of item.children; let childIndex = index"
+                                                class="bg-white border border-gray-200 rounded-md p-3 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 group">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center gap-2 flex-1">
+                                                        <mat-icon class="text-gray-400 text-sm">arrow_right</mat-icon>
+                                                        <mat-icon *ngIf="child.icon" class="text-gray-500 text-sm">{{
+                                                            child.icon }}</mat-icon>
+                                                        <div class="flex-1">
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="text-sm text-gray-700 font-medium">{{
+                                                                    child.title }}</span>
+                                                                <span *ngIf="!child.isActive"
+                                                                    class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                                    Inattivo
+                                                                </span>
+                                                            </div>
+                                                            <span *ngIf="child.route"
+                                                                class="text-xs text-gray-500 block mt-1">
+                                                                <mat-icon class="text-xs mr-1">link</mat-icon>{{
+                                                                child.route }}
+                                                            </span>
+                                                            <span *ngIf="child.title"
+                                                                class="text-xs text-gray-600 block mt-1">{{ child.title
+                                                                }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button mat-icon-button size="small"
+                                                            (click)="openItemDialog(group, child)"
+                                                            class="hover:bg-gray-100"
+                                                            matTooltip="Modifica Sotto-elemento">
+                                                            <mat-icon class="text-sm">edit</mat-icon>
+                                                        </button>
+                                                        <button mat-icon-button size="small" (click)="deleteItem(child)"
+                                                            class="hover:bg-red-100"
+                                                            matTooltip="Elimina Sotto-elemento">
+                                                            <mat-icon class="text-sm text-red-500">delete</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State per Gruppo -->
+                        <div *ngIf="!group.items || group.items.length === 0" class="text-center py-12 text-gray-500">
+                            <mat-icon class="text-4xl mb-3 opacity-50">menu</mat-icon>
+                            <h3 class="text-lg font-medium mb-2">Nessun elemento nel gruppo</h3>
+                            <p class="text-sm mb-4">Aggiungi il primo elemento per iniziare</p>
+                            <button mat-stroked-button color="primary" (click)="openItemDialog(group)">
+                                <mat-icon>add</mat-icon>
+                                Aggiungi primo elemento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Empty State Generale -->
+        <div *ngIf="!menuGroups || menuGroups.length === 0" class="text-center py-16">
+            <mat-icon class="text-8xl text-gray-300 mb-6">folder_open</mat-icon>
+            <h2 class="text-3xl font-semibold text-gray-600 mb-3">Nessun gruppo menu</h2>
+            <p class="text-gray-500 mb-6 text-lg">Inizia creando il tuo primo gruppo di menu per organizzare la
+                navigazione</p>
+            <button mat-raised-button color="primary" size="large" (click)="openGroupDialog()">
+                <mat-icon>add</mat-icon>
+                Crea primo gruppo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- <div class="p-6 bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Gestione Menu</h1>
+            <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                <mat-icon>add</mat-icon>
+                Nuovo Gruppo
+            </button>
+        </div>
+
+        <mat-accordion class="space-y-4" cdkDropList (cdkDropListDropped)="dropGroup($event)">
+            <mat-expansion-panel *ngFor="let group of menuGroups; trackBy: trackByGroupId" cdkDrag
+                class="shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg overflow-hidden">
+
+                <mat-expansion-panel-header class="bg-gradient-to-r from-gray-400 to-gray-500 text-white">
+                    <mat-panel-title class="text-white flex-1">
+                        <div class="flex items-center justify-between w-full">
+                            <div class="flex items-center gap-3">
+                                <mat-icon cdkDragHandle class="cursor-move">drag_indicator</mat-icon>
+                                <span class="text-lg font-semibold">{{ group.title }}</span>
+                                <span class="px-2 py-1 bg-white bg-opacity-20 rounded-full text-xs ml-2">
+                                    {{ group.items.length }} elementi
+                                </span>
+                            </div>
+                            <div class="flex gap-1" (click)="$event.stopPropagation()">
+                                <button mat-icon-button (click)="openGroupDialog(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="deleteGroup(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="openItemDialog(group)"
+                                    class="text-white hover:bg-white hover:bg-opacity-20">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div class="p-4 bg-white">
+                    <div cdkDropList (cdkDropListDropped)="dropItem($event, group)" class="space-y-3">
+                        <div *ngFor="let item of group.items; trackBy: trackByItemId" cdkDrag
+                            class="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <mat-icon cdkDragHandle class="text-gray-400 cursor-move">drag_indicator</mat-icon>
+                                    <mat-icon *ngIf="item.icon" class="text-gray-600">{{ item.icon }}</mat-icon>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">{{ item.title }}</h4>
+                                        <p *ngIf="item.route" class="text-sm text-gray-500">{{ item.route }}</p>
+                                    </div>
+                                    <span *ngIf="!item.isActive"
+                                        class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs ml-2">
+                                        Inattivo
+                                    </span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button mat-icon-button (click)="openItemDialog(group, item)"
+                                        class="text-gray-600 hover:bg-gray-200">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button (click)="deleteItem(item)"
+                                        class="text-red-600 hover:bg-red-100">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </div> -->
+
+<!-- Children items -->
+<!--  <div *ngIf="item.children && item.children.length > 0" class="ml-8 mt-4 space-y-2">
+                                <div class="text-sm font-medium text-gray-600 mb-2">Sotto-elementi:</div>
+                                <div *ngFor="let child of item.children"
+                                    class="bg-white border border-gray-200 rounded-md p-3 flex items-center justify-between shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        <mat-icon class="text-gray-400 text-sm">subdirectory_arrow_right</mat-icon>
+                                        <mat-icon *ngIf="child.icon" class="text-gray-500 text-sm">{{ child.icon
+                                            }}</mat-icon>
+                                        <span class="text-sm text-gray-700 font-medium">{{ child.title }}</span>
+                                        <span *ngIf="child.route" class="text-xs text-gray-500">{{ child.route }}</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button size="small" (click)="openItemDialog(group, child)"
+                                            class="hover:bg-gray-100">
+                                            <mat-icon class="text-sm">edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button size="small" (click)="deleteItem(child)"
+                                            class="hover:bg-red-100">
+                                            <mat-icon class="text-sm text-red-500">delete</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+
+<!-- Empty state per gruppo -->
+<!--                     <div *ngIf="group.items.length === 0" class="text-center py-8 text-gray-500">
+                        <mat-icon class="text-4xl mb-2 opacity-50">menu</mat-icon>
+                        <p class="mb-2">Nessun elemento nel gruppo</p>
+                        <button mat-stroked-button color="primary" (click)="openItemDialog(group)">
+                            <mat-icon>add</mat-icon>
+                            Aggiungi primo elemento
+                        </button>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion> -->
+
+<!-- Empty state generale -->
+<!--         <div *ngIf="menuGroups.length === 0" class="text-center py-12">
+            <mat-icon class="text-6xl text-gray-300 mb-4">folder_open</mat-icon>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-2">Nessun gruppo menu</h2>
+            <p class="text-gray-500 mb-4">Inizia creando il tuo primo gruppo di menu</p>
+            <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                <mat-icon>add</mat-icon>
+                Crea primo gruppo
+            </button>
+        </div>
+    </div>
+</div> -->
+
+<!-- <div class="p-6 bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">Gestione Menu</h1>
+            <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                <mat-icon>add</mat-icon>
+                Nuovo Gruppo
+            </button>
+        </div>
+
+        <div class="grid gap-6" cdkDropList (cdkDropListDropped)="dropGroup($event)">
+            <mat-card *ngFor="let group of menuGroups; trackBy: trackByGroupId" cdkDrag
+                class="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <mat-card-header
+                    class="bg-gradient-to-r from-blue-400 to-blue-500 text-white -m-4 mb-4 p-2 rounded-t-lg">
+                    <div class="flex justify-between items-center w-full  mb-2">
+                        <div class="flex items-center gap-3">
+                            <mat-icon>drag_indicator</mat-icon>
+                            <h2 class="text-xl font-semibold">{{ group.title }}</h2>
+                            <span class="px-2 py-1 bg-white bg-opacity-20 rounded-full text-xs">
+                                {{ group.items.length }} elementi
+                            </span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button mat-icon-button (click)="openGroupDialog(group)" class="text-white">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="deleteGroup(group)" class="text-white">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="openItemDialog(group)" class="text-white">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </mat-card-header>
+
+                <mat-card-content class="p-4">
+                    <div cdkDropList (cdkDropListDropped)="dropItem($event, group)" class="space-y-2">
+                        <div *ngFor="let item of group.items; trackBy: trackByItemId" cdkDrag
+                            class="bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <mat-icon class="text-gray-400">drag_indicator</mat-icon>
+                                    <mat-icon *ngIf="item.icon" class="text-blue-500">{{ item.icon }}</mat-icon>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">{{ item.title }}</h4>
+                                        <p *ngIf="item.route" class="text-sm text-gray-500">{{ item.route }}</p>
+                                    </div>
+                                    <span *ngIf="!item.isActive"
+                                        class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                        Inattivo
+                                    </span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button mat-icon-button (click)="openItemDialog(group, item)" class="text-gray-600">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button (click)="deleteItem(item)" class="text-red-600">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </div> -->
+
+<!-- Children items -->
+<!--                       <div *ngIf="item.children && item.children.length > 0" class="ml-8 mt-3 space-y-2">
+                                <div *ngFor="let child of item.children"
+                                    class="bg-gray-50 border border-gray-100 rounded p-2 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <mat-icon class="text-gray-400 text-sm">subdirectory_arrow_right</mat-icon>
+                                        <mat-icon *ngIf="child.icon" class="text-blue-400 text-sm">{{ child.icon
+                                            }}</mat-icon>
+                                        <span class="text-sm text-gray-700">{{ child.title }}</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button size="small" (click)="openItemDialog(group, child)">
+                                            <mat-icon class="text-sm">edit</mat-icon>
+                                        </button>
+                                        <button mat-icon-button size="small" (click)="deleteItem(child)">
+                                            <mat-icon class="text-sm text-red-500">delete</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="group.items.length === 0" class="text-center py-8 text-gray-500">
+                        <mat-icon class="text-4xl mb-2 opacity-50">menu</mat-icon>
+                        <p>Nessun elemento nel gruppo</p>
+                        <button mat-button color="primary" (click)="openItemDialog(group)" class="mt-2">
+                            Aggiungi primo elemento
+                        </button>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <div *ngIf="menuGroups.length === 0" class="text-center py-12">
+            <mat-icon class="text-6xl text-gray-300 mb-4">folder_open</mat-icon>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-2">Nessun gruppo menu</h2>
+            <p class="text-gray-500 mb-4">Inizia creando il tuo primo gruppo di menu</p>
+            <button mat-button color="primary" (click)="openGroupDialog()">
+                Crea primo gruppo
+            </button>
+        </div>
+    </div>
+</div> -->
