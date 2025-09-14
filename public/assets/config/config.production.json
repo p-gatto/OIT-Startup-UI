@@ -1,0 +1,9 @@
+{
+  "apiBaseUrl": "https://biz.oit.it",
+  "appName": "La Mia App Angular 20 - Production Environment ",
+  "features": {
+    "darkMode": true,
+    "notifications": true
+  },
+  "version": "1.0.0"
+}
