@@ -21,20 +21,26 @@ export class ConfigService {
     private loadingSignal = signal<boolean>(false);
     private errorSignal = signal<string | null>(null);
 
+    // BehaviorSubject per Observable reattivo - AGGIUNTO
+    private configSubject = new BehaviorSubject<AppConfig | null>(null);
+
     // Getters pubblici per i signals (readonly)
     public readonly config = this.configSignal.asReadonly();
     public readonly loading = this.loadingSignal.asReadonly();
     public readonly error = this.errorSignal.asReadonly();
+    /* 
+        // Observable per compatibilità con il codice esistente
+        public get config$(): Observable<AppConfig | null> {
+            // Converti il signal in observable se necessario
+            return new Observable(observer => {
+                const unsubscribe = () => { };
+                observer.next(this.configSignal());
+                return unsubscribe;
+            });
+        } */
 
-    // Observable per compatibilità con il codice esistente
-    public get config$(): Observable<AppConfig | null> {
-        // Converti il signal in observable se necessario
-        return new Observable(observer => {
-            const unsubscribe = () => { };
-            observer.next(this.configSignal());
-            return unsubscribe;
-        });
-    }
+    // Observable reattivo per compatibilità - CORRETTO
+    public readonly config$: Observable<AppConfig | null> = this.configSubject.asObservable();
 
     constructor() {
         if (environment.production === true) {
@@ -61,8 +67,16 @@ export class ConfigService {
             );
 
             console.log('✅ Config loaded successfully:', config);
+
+            /* this.configSignal.set(config);
+             */
+
+            // Aggiorna sia il signal che il BehaviorSubject - AGGIUNTO
             this.configSignal.set(config);
+            this.configSubject.next(config);
+
             this.loadingSignal.set(false);
+
             return config;
 
         } catch (error) {
@@ -75,7 +89,14 @@ export class ConfigService {
             };
 
             this.errorSignal.set(error instanceof Error ? error.message : 'Unknown error');
+
+            /* this.configSignal.set(fallbackConfig);
+            this.loadingSignal.set(false); */
+
+            // Aggiorna sia il signal che il BehaviorSubject anche per fallback - AGGIUNTO
             this.configSignal.set(fallbackConfig);
+            this.configSubject.next(fallbackConfig);
+
             this.loadingSignal.set(false);
 
             return fallbackConfig;
@@ -90,6 +111,7 @@ export class ConfigService {
     // Metodo per ricaricare la configurazione
     async reloadConfig(): Promise<AppConfig> {
         this.configSignal.set(null); // Reset del cache
+        this.configSubject.next(null);
         return this.loadConfig();
     }
 }

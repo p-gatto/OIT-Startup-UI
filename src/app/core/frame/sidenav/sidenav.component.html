@@ -21,12 +21,12 @@
                     @for (item of menuItem.items; track item.id) {
                     <div class="menu-item-container">
                         <!-- Item senza figli -->
-                        <mat-list-item *ngIf="!item.children" (click)="navigateTo(item.route!, item.queryParams)"
-                            class="menu-item">
+                        @if (!item.children) {
+                        <mat-list-item (click)="navigateTo(item.route!, item.queryParams)" class="menu-item">
                             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
                             <span matListItemTitle>{{ item.title }}</span>
                         </mat-list-item>
-
+                        }
                         <!-- Item con figli (2° livello) -->
                         @if (item.children) {
                         <div class="menu-group">
