@@ -1,0 +1,9 @@
+@if(loaded()) {
+<div>
+    <h1>{{ appName() }}</h1>
+    <br>
+    <br>
+    <p>MANAGEMENT API URL: {{ apiBaseUrl() }}</p>
+</div>
+} else
+<div>Caricamento configurazione...</div>
