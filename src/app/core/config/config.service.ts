@@ -21,7 +21,7 @@ export class ConfigService {
 
     constructor() {
         if (environment.production == true) {
-            this.configPath = '/assets/config/config.production.json';
+            this.configPath = './assets/config/config.production.json';
         }
     }
 
@@ -29,7 +29,6 @@ export class ConfigService {
     async loadConfig(): Promise<AppConfig> {
         const config = await lastValueFrom(
             this.http.get<AppConfig>(this.configPath)
-            //this.http.get<AppConfig>('./assets/config/config.json')
         );
         this.config.next(config);
         return config;
