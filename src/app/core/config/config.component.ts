@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -14,32 +14,19 @@ export default class ConfigComponent {
 
   private configService = inject(ConfigService);
 
-  // Utilizzo di signals per maggior efficienza in Zoneless
-  loaded = signal(false);
-  appName = signal('');
-  apiBaseUrl = signal('');
+  // Computed signals derivati dalla configurazione
+  protected readonly config = this.configService.config;
+  protected readonly loading = this.configService.loading;
+  protected readonly error = this.configService.error;
+
+  // Computed signals per i singoli valori
+  protected readonly loaded = computed(() => this.config() !== null);
+  protected readonly appName = computed(() => this.config()?.appName ?? '');
+  protected readonly apiBaseUrl = computed(() => this.config()?.apiBaseUrl ?? '');
 
   constructor() {
-    // Sottoscrizione ai cambiamenti della configurazione
-    this.configService.config$.pipe(
-      takeUntilDestroyed()
-    ).subscribe(config => {
-      if (config) {
-        this.loaded.set(true);
-        this.appName.set(config.appName);
-        this.apiBaseUrl.set(config.apiBaseUrl);
-      }
-    });
-  }
-
-  ngOnInit() {
-    // Se la configurazione è già caricata
-    const config = this.configService.getConfig();
-    if (config) {
-      this.loaded.set(true);
-      this.appName.set(config.appName);
-      this.apiBaseUrl.set(config.apiBaseUrl);
-    }
+    // Niente da fare nel constructor - tutto gestito dai signals!
+    console.log('📱 ConfigComponent initialized');
   }
 
 }

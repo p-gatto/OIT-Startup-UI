@@ -1,5 +1,5 @@
 // 2. Provider function per il bootstrap dell'applicazione
-import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { APP_INITIALIZER, EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
 
 import { ConfigService } from './config.service';
 

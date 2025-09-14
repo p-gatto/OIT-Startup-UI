@@ -1,9 +1,27 @@
-@if(loaded()) {
-<div>
+@if (loading()) {
+<div class="loading">
+    <p>🔄 Caricamento configurazione...</p>
+</div>
+} @else if (error()) {
+<div class="error">
+    <p>❌ Errore nel caricamento della configurazione:</p>
+    <p><strong>{{ error() }}</strong></p>
+    <p>Utilizzando configurazione di fallback.</p>
+</div>
+}
+
+@if (loaded()) {
+<div class="config-display">
     <h1>{{ appName() }}</h1>
     <br>
     <br>
-    <p>MANAGEMENT API URL: {{ apiBaseUrl() }}</p>
+    <p><strong>MANAGEMENT API URL:</strong> {{ apiBaseUrl() }}</p>
+    <p><strong>Status:</strong>
+        @if (error()) {
+        <span style="color: orange;">⚠️ Fallback Mode</span>
+        } @else {
+        <span style="color: green;">✅ Loaded Successfully</span>
+        }
+    </p>
 </div>
-} else
-<div>Caricamento configurazione...</div>
+}

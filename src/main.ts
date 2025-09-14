@@ -8,12 +8,24 @@ import { ConfigService } from './app/core/config/config.service';
 /* bootstrapApplication(App, appConfig)
   .catch((err) => console.error(err)); */
 
-// Bootstrap con precaricamento configurazione
+// Bootstrap moderno con precaricamento configurazione
 async function bootstrap() {
-  const app = await bootstrapApplication(App, appConfig);
-  const configService = app.injector.get(ConfigService);
-  await configService.loadConfig();
-  return app;
+  try {
+    // 1. Avvia l'applicazione
+    const appRef = await bootstrapApplication(App, appConfig);
+
+    // 2. Ottieni il servizio di configurazione dall'injector
+    const configService = appRef.injector.get(ConfigService);
+
+    // 3. Carica la configurazione
+    await configService.loadConfig();
+
+    console.log('Application bootstrapped successfully with config loaded');
+    return appRef;
+  } catch (error) {
+    console.error('Failed to bootstrap application:', error);
+    throw error;
+  }
 }
 
-bootstrap().catch(err => console.error(err));
+bootstrap().catch(err => console.error('Bootstrap error:', err));

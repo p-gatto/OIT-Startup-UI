@@ -3,7 +3,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideConfig } from './core/config/config.provider';
+//import { provideConfig } from './core/config/config.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -11,6 +11,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch()),
     provideRouter(routes),
-    provideConfig()    // Provider customizzatto nel file config.provider.ts    
+    //provideConfig()    // Provider customizzatto nel file config.provider.ts    
   ]
 };
