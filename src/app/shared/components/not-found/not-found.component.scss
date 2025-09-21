@@ -1,0 +1,81 @@
+.error-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+}
+
+.error-card {
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+}
+
+.error-content {
+    padding: 2rem 1rem;
+}
+
+.error-number {
+    font-size: 6rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.error-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    color: #333;
+    font-size: 2rem;
+    margin: 1rem 0;
+    font-weight: 500;
+}
+
+.error-message {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    line-height: 1.5;
+}
+
+.error-details {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 1rem 0 2rem 0;
+    line-height: 1.4;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-buttons button {
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+@media (min-width: 600px) {
+    .action-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .action-buttons button {
+        min-width: auto;
+    }
+}

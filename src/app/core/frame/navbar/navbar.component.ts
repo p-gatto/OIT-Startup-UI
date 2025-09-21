@@ -49,7 +49,7 @@ export class NavbarComponent {
   }
 
   onConfigClick() {
-    console.log('Notifications clicked');
+    console.log('Config clicked');
   }
 
   onInfoClick() {
@@ -57,7 +57,7 @@ export class NavbarComponent {
       🚀 La Mia Webapp v1.0.0
       
       📋 Caratteristiche:
-      • Angular 19 + Material Design
+      • Angular 20 + Material Design
       • Architettura modulare
       • Menu a 2 livelli
       • Design responsivo

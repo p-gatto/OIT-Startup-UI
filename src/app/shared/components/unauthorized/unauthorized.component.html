@@ -1,0 +1,32 @@
+<div class="error-container">
+    <mat-card class="error-card">
+        <mat-card-content>
+            <div class="error-content">
+                <mat-icon class="error-icon">block</mat-icon>
+                <h1>Accesso Negato</h1>
+                <p class="error-message">
+                    Non hai i permessi necessari per accedere a questa pagina.
+                </p>
+                <p class="error-details">
+                    Se ritieni che questo sia un errore, contatta l'amministratore di sistema.
+                </p>
+                <div class="action-buttons">
+                    <button mat-raised-button color="primary" (click)="goHome()">
+                        <mat-icon>home</mat-icon>
+                        Torna alla Home
+                    </button>
+                    <button mat-button (click)="goBack()">
+                        <mat-icon>arrow_back</mat-icon>
+                        Indietro
+                    </button>
+                    @if (isAuthenticated()) {
+                    <button mat-button color="warn" (click)="logout()">
+                        <mat-icon>logout</mat-icon>
+                        Logout
+                    </button>
+                    }
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>
