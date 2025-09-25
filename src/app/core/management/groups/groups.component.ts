@@ -13,9 +13,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { Group } from '../../auth/models/group.model';
 import { Permission } from '../../auth/models/permission.model';
+
 import { UserService } from '../users/user.service';
+
 import { SecurityGroupDialog } from './dialog/security-group-dialog/security-group-dialog.component';
 import { GroupPermissionsDialog } from './dialog/group-permissions-dialog/group-permissions-dialog.component';
 
@@ -109,7 +112,7 @@ export default class GroupsComponent implements OnInit {
       return;
     }
 
-    if (group.userCount > 0) {
+    if (group.userCount! > 0) {
       this.snackBar.open('Non è possibile eliminare un gruppo con utenti assegnati', 'Chiudi', { duration: 3000 });
       return;
     }

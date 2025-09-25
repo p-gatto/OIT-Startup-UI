@@ -38,7 +38,8 @@
                                     <mat-chip class="inactive-chip">Inattivo</mat-chip>
                                     }
                                 </div>
-                                <span class="user-count">{{ group.userCount }} utenti</span>
+                                <!-- Correzione: userCount invece di userCount -->
+                                <span class="user-count">{{ group.userCount || 0 }} utenti</span>
                             </div>
                         </mat-panel-title>
                         <mat-panel-description>
@@ -57,8 +58,9 @@
                                 <mat-icon>admin_panel_settings</mat-icon>
                                 Gestisci Permessi
                             </button>
+                            <!-- Correzione: userCount invece di userCount -->
                             <button mat-raised-button color="warn" (click)="deleteGroup(group)"
-                                [disabled]="group.isSystemGroup || group.userCount > 0">
+                                [disabled]="group.isSystemGroup || (group.userCount && group.userCount > 0)">
                                 <mat-icon>delete</mat-icon>
                                 Elimina Gruppo
                             </button>
