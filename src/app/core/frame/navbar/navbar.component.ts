@@ -7,6 +7,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
 
+import { AuthService } from '../../auth/auth.service';
+
 @Component({
   selector: 'app-navbar',
   imports: [
@@ -22,7 +24,14 @@ import { MatMenuModule } from '@angular/material/menu';
 })
 export class NavbarComponent {
 
+  private authService = inject(AuthService);
+
   @Output() menuToggle = new EventEmitter<void>();
+  @Output() logout = new EventEmitter<void>();
+
+  // Signals per l'autenticazione
+  protected readonly isAuthenticated = this.authService.isAuthenticated;
+  protected readonly currentUser = this.authService.currentUser;
 
   onMenuToggle() {
     this.menuToggle.emit();
@@ -33,7 +42,7 @@ export class NavbarComponent {
   }
 
   onLogoutClick() {
-    console.log('Logout clicked');
+    this.logout.emit();
   }
 
   onThemeClick() {
@@ -61,9 +70,12 @@ export class NavbarComponent {
       • Architettura modulare
       • Menu a 2 livelli
       • Design responsivo
+      • Sistema di autenticazione JWT
+      • Gestione utenti e gruppi
       
       👨‍💻 Sviluppata con ❤️
     `;
     alert(appInfo);
   }
+
 }

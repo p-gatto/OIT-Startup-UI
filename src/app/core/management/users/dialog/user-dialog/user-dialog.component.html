@@ -1,0 +1,168 @@
+<h2 mat-dialog-title>
+    <mat-icon>{{ isEdit ? 'edit' : 'person_add' }}</mat-icon>
+    {{ isEdit ? 'Modifica Utente' : 'Nuovo Utente' }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="dialog-content">
+
+        <!-- Informazioni personali -->
+        <div class="form-section">
+            <h3>Informazioni Personali</h3>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Nome</mat-label>
+                    <input matInput formControlName="firstName" placeholder="Nome">
+                    <mat-icon matSuffix>person</mat-icon>
+                    <mat-error *ngIf="form.get('firstName')?.hasError('required')">
+                        Il nome è obbligatorio
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Cognome</mat-label>
+                    <input matInput formControlName="lastName" placeholder="Cognome">
+                    <mat-error *ngIf="form.get('lastName')?.hasError('required')">
+                        Il cognome è obbligatorio
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="email@esempio.com">
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error *ngIf="form.get('email')?.hasError('required')">
+                    L'email è obbligatoria
+                </mat-error>
+                <mat-error *ngIf="form.get('email')?.hasError('email')">
+                    Inserisci un'email valida
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <!-- Credenziali -->
+        <div class="form-section">
+            <h3>Credenziali</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" placeholder="Username">
+                <mat-icon matSuffix>account_circle</mat-icon>
+                <mat-error *ngIf="form.get('username')?.hasError('required')">
+                    L'username è obbligatorio
+                </mat-error>
+                <mat-error *ngIf="form.get('username')?.hasError('maxlength')">
+                    L'username non può superare i 20 caratteri
+                </mat-error>
+            </mat-form-field>
+
+            @if (!isEdit) {
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Password</mat-label>
+                <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                    placeholder="Password">
+                <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-error *ngIf="form.get('password')?.hasError('required')">
+                    La password è obbligatoria
+                </mat-error>
+                <mat-error *ngIf="form.get('password')?.hasError('minlength')">
+                    La password deve essere di almeno 6 caratteri
+                </mat-error>
+            </mat-form-field>
+            }
+        </div>
+
+        <!-- Gruppi di Sicurezza -->
+        <div class="form-section">
+            <h3>Gruppi di Sicurezza</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Seleziona Gruppi</mat-label>
+                <mat-select formControlName="securityGroupIds" multiple>
+                    @for (group of data.securityGroups; track group.id) {
+                    <mat-option [value]="group.id">
+                        <div class="group-option">
+                            <span>{{ group.name }}</span>
+                            @if (group.isSystemGroup) {
+                            <mat-chip class="system-chip">Sistema</mat-chip>
+                            }
+                        </div>
+                    </mat-option>
+                    }
+                </mat-select>
+                <mat-hint>Puoi selezionare più gruppi</mat-hint>
+            </mat-form-field>
+
+            <!-- Mostra gruppi selezionati -->
+            @if (selectedGroups.length > 0) {
+            <div class="selected-groups">
+                <label>Gruppi selezionati:</label>
+                <div class="chips-container">
+                    @for (group of selectedGroups; track group.id) {
+                    <mat-chip [class]="getGroupChipClass(group)">
+                        {{ group.name }}
+                        @if (group.isSystemGroup) {
+                        <mat-icon matChipTrailingIcon>verified</mat-icon>
+                        }
+                    </mat-chip>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Stato -->
+        <div class="form-section">
+            <h3>Stato Account</h3>
+
+            <div class="checkboxes-container">
+                <mat-checkbox formControlName="isActive">
+                    <div class="checkbox-label">
+                        <span>Account attivo</span>
+                        <small>L'utente può accedere al sistema</small>
+                    </div>
+                </mat-checkbox>
+
+                <mat-checkbox formControlName="emailConfirmed">
+                    <div class="checkbox-label">
+                        <span>Email confermata</span>
+                        <small>L'indirizzo email è stato verificato</small>
+                    </div>
+                </mat-checkbox>
+            </div>
+        </div>
+
+        @if (isEdit && data.user) {
+        <div class="user-info">
+            <h4>Informazioni Account</h4>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Creato il:</label>
+                    <span>{{ data.user.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                @if (data.user.lastLoginAt) {
+                <div class="info-item">
+                    <label>Ultimo accesso:</label>
+                    <span>{{ data.user.lastLoginAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+        <button mat-button type="button" (click)="onCancel()">
+            Annulla
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+            <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+            {{ isEdit ? 'Aggiorna' : 'Crea Utente' }}
+        </button>
+    </mat-dialog-actions>
+</form>

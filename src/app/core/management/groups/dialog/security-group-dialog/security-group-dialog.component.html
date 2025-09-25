@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Modifica Gruppo' : 'Nuovo Gruppo' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="dialog-content">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nome Gruppo</mat-label>
+            <input matInput formControlName="name" placeholder="Nome del gruppo di sicurezza">
+            <mat-error *ngIf="form.get('name')?.hasError('required')">
+                Il nome è obbligatorio
+            </mat-error>
+            <mat-error *ngIf="form.get('name')?.hasError('maxlength')">
+                Il nome non può superare i 100 caratteri
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descrizione</mat-label>
+            <textarea matInput formControlName="description" placeholder="Descrizione del gruppo (opzionale)" rows="3">
+          </textarea>
+            <mat-error *ngIf="form.get('description')?.hasError('maxlength')">
+                La descrizione non può superare i 500 caratteri
+            </mat-error>
+        </mat-form-field>
+
+        <div class="checkbox-container">
+            <mat-checkbox formControlName="isActive">
+                Gruppo attivo
+            </mat-checkbox>
+        </div>
+
+        @if (data.group?.isSystemGroup) {
+        <div class="warning-message">
+            <mat-icon>info</mat-icon>
+            Questo è un gruppo di sistema. Alcune proprietà potrebbero essere limitate.
+        </div>
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+        <button mat-button type="button" (click)="onCancel()">
+            Annulla
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+            {{ isEdit ? 'Aggiorna' : 'Crea' }}
+        </button>
+    </mat-dialog-actions>
+</form>

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -15,9 +15,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+
 import { Group } from '../../auth/models/group.model';
 import { User } from '../../auth/models/user.model';
-import { UserDialogComponent } from './dialog/user-dialog.component';
 import { UserService } from './user.service';
 
 @Component({
@@ -42,7 +42,7 @@ import { UserService } from './user.service';
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })
-export class UsersComponent {
+export default class UsersComponent implements OnInit {
 
   private userService = inject(UserService);
   private dialog = inject(MatDialog);
@@ -83,15 +83,19 @@ export class UsersComponent {
   }
 
   openUserDialog(user?: User): void {
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '600px',
-      data: { user, securityGroups: this.securityGroups() }
-    });
+    // Importa il dialog component dinamicamente
+    import('./dialog/user-dialog/user-dialog.component').then(({ UserDialogComponent }) => {
+      const dialogRef = this.dialog.open(UserDialogComponent, {
+        width: '600px',
+        maxWidth: '90vw',
+        data: { user, securityGroups: this.securityGroups() }
+      });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
-      if (result) {
-        this.loadUsers();
-      }
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.loadUsers();
+        }
+      });
     });
   }
 

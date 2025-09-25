@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 
 import { filter } from 'rxjs';
@@ -13,6 +14,7 @@ import { AuthService } from './core/auth/auth.service';
 @Component({
   selector: 'app-root',
   imports: [
+    CommonModule,
     RouterOutlet,
     MatSidenavModule,
     NavbarComponent,
@@ -30,7 +32,7 @@ import { AuthService } from './core/auth/auth.service';
       <div class="app-container">
 
         <!-- Header Component -->
-        <app-navbar (menuToggle)="toggleSidebar()"></app-navbar>
+        <app-navbar (menuToggle)="toggleSidebar()" (logout)="onLogout()"></app-navbar>
 
         <!-- Main Content Area with Sidebar -->
         <mat-sidenav-container class="app-sidenav-container">
@@ -153,4 +155,9 @@ export class App {
       this.sidebarOpen.set(false);
     }
   }
+
+  onLogout(): void {
+    this.authService.logout();
+  }
+
 }

@@ -1,0 +1,104 @@
+<div class="security-groups-container">
+    <mat-card>
+        <mat-card-header>
+            <div class="header-content">
+                <div>
+                    <mat-card-title>
+                        <mat-icon>security</mat-icon>
+                        Gruppi di Sicurezza
+                    </mat-card-title>
+                    <mat-card-subtitle>Gestisci i gruppi di sicurezza e i loro permessi</mat-card-subtitle>
+                </div>
+                <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                    <mat-icon>add</mat-icon>
+                    Nuovo Gruppo
+                </button>
+            </div>
+        </mat-card-header>
+
+        <mat-card-content>
+            @if (loading()) {
+            <div class="loading-container">
+                <mat-spinner></mat-spinner>
+                <p>Caricamento gruppi di sicurezza...</p>
+            </div>
+            } @else {
+            <mat-accordion class="groups-accordion" multi>
+                @for (group of securityGroups(); track group.id) {
+                <mat-expansion-panel class="group-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            <div class="group-header">
+                                <div class="group-info">
+                                    <span class="group-name">{{ group.name }}</span>
+                                    @if (group.isSystemGroup) {
+                                    <mat-chip class="system-chip">Sistema</mat-chip>
+                                    }
+                                    @if (!group.isActive) {
+                                    <mat-chip class="inactive-chip">Inattivo</mat-chip>
+                                    }
+                                </div>
+                                <span class="user-count">{{ group.userCount }} utenti</span>
+                            </div>
+                        </mat-panel-title>
+                        <mat-panel-description>
+                            {{ group.description || 'Nessuna descrizione' }}
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="group-content">
+                        <div class="group-actions">
+                            <button mat-raised-button color="primary" (click)="openGroupDialog(group)"
+                                [disabled]="group.isSystemGroup">
+                                <mat-icon>edit</mat-icon>
+                                Modifica Gruppo
+                            </button>
+                            <button mat-raised-button (click)="openPermissionsDialog(group)">
+                                <mat-icon>admin_panel_settings</mat-icon>
+                                Gestisci Permessi
+                            </button>
+                            <button mat-raised-button color="warn" (click)="deleteGroup(group)"
+                                [disabled]="group.isSystemGroup || group.userCount > 0">
+                                <mat-icon>delete</mat-icon>
+                                Elimina Gruppo
+                            </button>
+                        </div>
+
+                        @if (group.permissions && group.permissions.length > 0) {
+                        <div class="permissions-section">
+                            <h4>Permessi assegnati ({{ group.permissions.length }})</h4>
+                            <div class="permissions-grid">
+                                @for (permission of group.permissions; track permission.id) {
+                                <mat-chip class="permission-chip" [matTooltip]="permission.description">
+                                    <mat-icon>{{ getPermissionIcon(permission.resource) }}</mat-icon>
+                                    {{ permission.name }}
+                                </mat-chip>
+                                }
+                            </div>
+                        </div>
+                        } @else {
+                        <div class="no-permissions">
+                            <mat-icon>warning</mat-icon>
+                            <span>Nessun permesso assegnato a questo gruppo</span>
+                        </div>
+                        }
+                    </div>
+                </mat-expansion-panel>
+                }
+            </mat-accordion>
+
+            @if (securityGroups().length === 0) {
+            <div class="no-data">
+                <mat-icon>security</mat-icon>
+                <h3>Nessun gruppo di sicurezza trovato</h3>
+                <p>Inizia creando il primo gruppo</p>
+                <button mat-raised-button color="primary" (click)="openGroupDialog()">
+                    <mat-icon>add</mat-icon>
+                    Crea primo gruppo
+                </button>
+            </div>
+            }
+            }
+        </mat-card-content>
+    </mat-card>
+</div>

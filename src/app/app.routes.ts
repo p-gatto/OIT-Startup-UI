@@ -30,11 +30,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home.component'),
         canActivate: [AuthGuard]
     },
-    {
+    /* {
         path: 'dashboard',
         loadComponent: () => import('./features/home/home.component'),
         canActivate: [AuthGuard]
-    },
+    }, */
 
     // Admin routes
     {
@@ -49,7 +49,7 @@ export const routes: Routes = [
             },
             {
                 path: 'groups',
-                loadComponent: () => import('./features/admin/security-groups/security-groups.component'),
+                loadComponent: () => import('./core/management/groups/groups.component'),
                 data: { permissions: ['SecurityGroup:Manage'] }
             },
             {
@@ -71,6 +71,6 @@ export const routes: Routes = [
     },
 
     // Default redirects
-    { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+    { path: '', redirectTo: '/home', pathMatch: 'full' },
     { path: '**', redirectTo: '/not-found' }
 ];

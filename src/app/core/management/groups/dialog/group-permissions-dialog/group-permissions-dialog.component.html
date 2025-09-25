@@ -1,0 +1,86 @@
+<h2 mat-dialog-title>
+    <mat-icon>admin_panel_settings</mat-icon>
+    Gestisci Permessi - {{ data.group.name }}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+    <!-- Filtro di ricerca -->
+    <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Cerca permessi</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Filtra per nome o risorsa">
+        <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Azioni rapide -->
+    <div class="quick-actions">
+        <button mat-button (click)="selectAll()">
+            <mat-icon>done_all</mat-icon>
+            Seleziona Tutti
+        </button>
+        <button mat-button (click)="selectNone()">
+            <mat-icon>clear</mat-icon>
+            Deseleziona Tutti
+        </button>
+    </div>
+
+    <!-- Riepilogo selezioni -->
+    <div class="selection-summary">
+        <mat-chip class="selected-count">
+            {{ selectedPermissions().length }} di {{ filteredPermissions().length }} permessi selezionati
+        </mat-chip>
+    </div>
+
+    <!-- Permessi raggruppati per risorsa -->
+    <mat-accordion class="permissions-accordion" multi>
+        @for (group of groupedPermissions(); track group.resource) {
+        <mat-expansion-panel>
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <div class="resource-header">
+                        <mat-icon>{{ group.icon }}</mat-icon>
+                        <span>{{ group.resource }}</span>
+                        <mat-chip class="count-chip">{{ group.permissions.length }}</mat-chip>
+                    </div>
+                </mat-panel-title>
+                <mat-panel-description>
+                    {{ getSelectedCountForResource(group.resource) }} di {{ group.permissions.length }} selezionati
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="permissions-list">
+                @for (permission of group.permissions; track permission.id) {
+                <div class="permission-item">
+                    <mat-checkbox [checked]="isPermissionSelected(permission.id)"
+                        (change)="togglePermission(permission.id, $event.checked)">
+                        <div class="permission-info">
+                            <span class="permission-name">{{ permission.name }}</span>
+                            <span class="permission-action">{{ permission.action }}</span>
+                            @if (permission.description) {
+                            <span class="permission-description">{{ permission.description }}</span>
+                            }
+                        </div>
+                    </mat-checkbox>
+                </div>
+                }
+            </div>
+        </mat-expansion-panel>
+        }
+    </mat-accordion>
+
+    @if (groupedPermissions().length === 0) {
+    <div class="no-permissions">
+        <mat-icon>search_off</mat-icon>
+        <p>Nessun permesso trovato con i filtri attuali</p>
+    </div>
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="onCancel()">
+        Annulla
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading">
+        <mat-icon>save</mat-icon>
+        Salva Permessi
+    </button>
+</mat-dialog-actions>
