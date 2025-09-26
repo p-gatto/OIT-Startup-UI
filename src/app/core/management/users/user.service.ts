@@ -155,7 +155,7 @@ export class UserService {
   assignPermissionsToGroup(groupId: number, permissionIds: number[]): Observable<boolean> {
     return this.apiBaseUrl$.pipe(
       switchMap(baseUrl =>
-        this.http.put<void>(`${baseUrl}/api/groups/${groupId}/permissions`, { permissionIds }).pipe(
+        this.http.put<void>(`${baseUrl}/api/groups/${groupId}/permissions`, { PermissionIds: permissionIds }).pipe(
           map(() => true),
           catchError(this.handleError)
         )
