@@ -45,7 +45,7 @@ export const routes: Routes = [
             {
                 path: 'groups',
                 loadComponent: () => import('./core/management/groups/groups.component'),
-                data: { permissions: ['SecurityGroup:Manage'] }
+                data: { permissions: ['Group:Manage'] }
             },
             {
                 path: 'menu',
