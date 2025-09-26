@@ -1,18 +1,11 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 
 import { ConfigService } from '../../config/config.service';
-
-import { Permission } from '../../auth/models/permission.model';
-import { CreatePermission } from '../../auth/models/create-permission.model';
-
-import { Group } from '../../auth/models/group.model';
-import { CreateGroup } from '../../auth/models/create-group.model';
-import { UpdateGroup } from '../../auth/models/update-group.model';
-
 import { User } from '../../auth/models/user.model';
+import { Group } from '../../auth/models/group.model';
 import { CreateUser } from '../../auth/models/create-user.model';
 import { UpdateUser } from '../../auth/models/update-user.model';
 
@@ -20,77 +13,87 @@ import { UpdateUser } from '../../auth/models/update-user.model';
   providedIn: 'root'
 })
 export class UserService {
+  private readonly http = inject(HttpClient);
+  private readonly configService = inject(ConfigService);
 
-  private http = inject(HttpClient);
-  private configService = inject(ConfigService);
+  private readonly apiBaseUrl$ = this.configService.config$.pipe(
+    map(config => config?.apiBaseUrl ?? 'http://localhost:5000')
+  );
 
-  private apiBaseUrl = computed(() => this.configService.config()?.apiBaseUrl ?? 'http://localhost:5000');
-
-  // User management
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiBaseUrl()}/api/users`);
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.get<User[]>(`${baseUrl}/api/users`).pipe(
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
-  getUser(id: number): Observable<User> {
-    return this.http.get<User>(`${this.apiBaseUrl()}/api/users/${id}`);
+  getUserById(id: number): Observable<User> {
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.get<User>(`${baseUrl}/api/users/${id}`).pipe(
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
   createUser(user: CreateUser): Observable<User> {
-    return this.http.post<User>(`${this.apiBaseUrl()}/api/users`, user);
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.post<User>(`${baseUrl}/api/users`, user).pipe(
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
   updateUser(id: number, user: UpdateUser): Observable<User> {
-    return this.http.put<User>(`${this.apiBaseUrl()}/api/users/${id}`, user);
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.put<User>(`${baseUrl}/api/users/${id}`, user).pipe(
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl()}/api/users/${id}`);
+  deleteUser(id: number): Observable<boolean> {
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.delete<void>(`${baseUrl}/api/users/${id}`).pipe(
+          map(() => true),
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
-  resetPassword(id: number, newPassword: string): Observable<void> {
-    return this.http.post<void>(`${this.apiBaseUrl()}/api/users/${id}/reset-password`, { newPassword });
+  resetPassword(id: number, newPassword: string): Observable<boolean> {
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.post<void>(`${baseUrl}/api/users/${id}/reset-password`, { newPassword }).pipe(
+          map(() => true),
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
-  assignSecurityGroups(id: number, securityGroupIds: number[]): Observable<void> {
-    return this.http.put<void>(`${this.apiBaseUrl()}/api/users/${id}/security-groups`, { securityGroupIds });
-  }
-
-  // Security Groups management
   getGroups(): Observable<Group[]> {
-    return this.http.get<Group[]>(`${this.apiBaseUrl()}/api/security-groups`);
+    return this.apiBaseUrl$.pipe(
+      switchMap(baseUrl =>
+        this.http.get<Group[]>(`${baseUrl}/api/security-groups`).pipe(
+          catchError(this.handleError)
+        )
+      )
+    );
   }
 
-  getGroup(id: number): Observable<Group> {
-    return this.http.get<Group>(`${this.apiBaseUrl()}/api/security-groups/${id}`);
+  private handleError(error: any): Observable<never> {
+    console.error('UserService error:', error);
+    return throwError(() => error);
   }
-
-  createGroup(group: CreateGroup): Observable<Group> {
-    return this.http.post<Group>(`${this.apiBaseUrl()}/api/security-groups`, group);
-  }
-
-  updateGroup(id: number, group: UpdateGroup): Observable<Group> {
-    return this.http.put<Group>(`${this.apiBaseUrl()}/api/security-groups/${id}`, group);
-  }
-
-  deleteGroup(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl()}/api/security-groups/${id}`);
-  }
-
-  assignPermissionsToGroup(id: number, permissionIds: number[]): Observable<void> {
-    return this.http.put<void>(`${this.apiBaseUrl()}/api/security-groups/${id}/permissions`, { permissionIds });
-  }
-
-  // Permissions management
-  getPermissions(): Observable<Permission[]> {
-    return this.http.get<Permission[]>(`${this.apiBaseUrl()}/api/security-groups/permissions`);
-  }
-
-  createPermission(permission: CreatePermission): Observable<Permission> {
-    return this.http.post<Permission>(`${this.apiBaseUrl()}/api/security-groups/permissions`, permission);
-  }
-
-  deletePermission(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl()}/api/security-groups/permissions/${id}`);
-  }
-
 }

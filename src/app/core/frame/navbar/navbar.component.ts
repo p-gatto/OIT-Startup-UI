@@ -1,5 +1,6 @@
-import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Output, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,11 +8,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
 
+import { Subject, takeUntil } from 'rxjs';
+
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-navbar',
   imports: [
+    CommonModule,
     RouterLink,
     MatToolbarModule,
     MatButtonModule,
@@ -20,18 +24,45 @@ import { AuthService } from '../../auth/auth.service';
     MatMenuModule
   ],
   templateUrl: './navbar.component.html',
-  styleUrls: [`./navbar.component.css`]
+  styleUrls: [`./navbar.component.css`],
+  styles: [`
+    .user-info-menu {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .user-name {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .user-email {
+      font-size: 0.75rem;
+      color: #666;
+    }
+  `]
 })
-export class NavbarComponent {
-
-  private authService = inject(AuthService);
+export class NavbarComponent implements OnDestroy {
+  private readonly authService = inject(AuthService);
+  private readonly destroy$ = new Subject<void>();
 
   @Output() menuToggle = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
 
-  // Signals per l'autenticazione
-  protected readonly isAuthenticated = this.authService.isAuthenticated;
-  protected readonly currentUser = this.authService.currentUser;
+  // Use RxJS streams instead of signals
+  protected readonly isAuthenticated$ = this.authService.isAuthenticated$;
+  protected readonly currentUser$ = this.authService.currentUser$;
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   onMenuToggle() {
     this.menuToggle.emit();
@@ -77,5 +108,4 @@ export class NavbarComponent {
     `;
     alert(appInfo);
   }
-
 }

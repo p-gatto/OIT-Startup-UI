@@ -12,12 +12,22 @@
         <mat-icon>home</mat-icon>
     </button>
 
-    <!-- Profile Menu -->
+    <!-- Profile Menu - Mostra solo se autenticato -->
+    @if (isAuthenticated$ | async) {
     <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="header-button">
         <mat-icon>account_circle</mat-icon>
     </button>
 
     <mat-menu #profileMenu="matMenu">
+        @if (currentUser$ | async; as user) {
+        <div mat-menu-item disabled class="user-info-menu">
+            <div class="user-details">
+                <span class="user-name">{{ user.fullName }}</span>
+                <span class="user-email">{{ user.email }}</span>
+            </div>
+        </div>
+        <mat-divider></mat-divider>
+        }
         <button mat-menu-item (click)="onProfileClick()">
             <mat-icon>person</mat-icon>
             <span>Il Mio Profilo</span>
@@ -27,6 +37,7 @@
             <span>Logout</span>
         </button>
     </mat-menu>
+    }
 
     <!-- Settings Menu -->
     <button mat-icon-button [matMenuTriggerFor]="settingsMenu" class="header-button">

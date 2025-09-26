@@ -1,10 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+
+import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -19,12 +21,17 @@ import { AuthService } from '../../../core/auth/auth.service';
   templateUrl: './unauthorized.component.html',
   styleUrl: './unauthorized.component.scss'
 })
-export default class UnauthorizedComponent {
+export default class UnauthorizedComponent implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly destroy$ = new Subject<void>();
 
-  private router = inject(Router);
-  private authService = inject(AuthService);
+  protected readonly isAuthenticated$ = this.authService.isAuthenticated$;
 
-  protected readonly isAuthenticated = this.authService.isAuthenticated;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   goHome(): void {
     this.router.navigate(['/home']);
@@ -35,7 +42,8 @@ export default class UnauthorizedComponent {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.authService.logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
   }
-
 }

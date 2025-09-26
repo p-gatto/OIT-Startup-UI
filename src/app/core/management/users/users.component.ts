@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -16,9 +16,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+import { Subject, takeUntil, finalize, switchMap, of } from 'rxjs';
+
 import { Group } from '../../auth/models/group.model';
 import { User } from '../../auth/models/user.model';
 import { UserService } from './user.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-users',
@@ -42,16 +45,21 @@ import { UserService } from './user.service';
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })
-export default class UsersComponent implements OnInit {
-
-  private userService = inject(UserService);
-  private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
+export default class UsersComponent implements OnInit, OnDestroy {
+  private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly destroy$ = new Subject<void>();
 
   // Signals
   protected users = signal<User[]>([]);
   protected loading = signal(true);
   protected securityGroups = signal<Group[]>([]);
+
+  // Use RxJS streams for permission checking
+  protected readonly canManageUsers$ = this.authService.hasPermission('User', 'Create');
+  protected readonly canDeleteUsers$ = this.authService.hasPermission('User', 'Delete');
 
   displayedColumns: string[] = ['avatar', 'fullName', 'email', 'securityGroups', 'status', 'lastLogin', 'actions'];
 
@@ -60,77 +68,147 @@ export default class UsersComponent implements OnInit {
     this.loadSecurityGroups();
   }
 
-  private async loadUsers(): Promise<void> {
-    try {
-      this.loading.set(true);
-      const users = await this.userService.getUsers().toPromise();
-      this.users.set(users || []);
-    } catch (error) {
-      console.error('Errore durante il caricamento degli utenti:', error);
-      this.snackBar.open('Errore durante il caricamento degli utenti', 'Chiudi', { duration: 3000 });
-    } finally {
-      this.loading.set(false);
-    }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private async loadSecurityGroups(): Promise<void> {
-    try {
-      const groups = await this.userService.getGroups().toPromise();
-      this.securityGroups.set(groups || []);
-    } catch (error) {
-      console.error('Errore durante il caricamento dei gruppi di sicurezza:', error);
-    }
+  private loadUsers(): void {
+    this.loading.set(true);
+
+    this.userService.getUsers()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: (users) => this.users.set(users || []),
+        error: (error) => {
+          console.error('Errore durante il caricamento degli utenti:', error);
+          this.snackBar.open('Errore durante il caricamento degli utenti', 'Chiudi', { duration: 3000 });
+        }
+      });
+  }
+
+  private loadSecurityGroups(): void {
+    this.userService.getGroups()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (groups) => this.securityGroups.set(groups || []),
+        error: (error) => {
+          console.error('Errore durante il caricamento dei gruppi di sicurezza:', error);
+        }
+      });
   }
 
   openUserDialog(user?: User): void {
-    // Importa il dialog component dinamicamente
-    import('./dialog/user-dialog/user-dialog.component').then(({ UserDialogComponent }) => {
-      const dialogRef = this.dialog.open(UserDialogComponent, {
-        width: '600px',
-        maxWidth: '90vw',
-        data: { user, securityGroups: this.securityGroups() }
-      });
+    // Check permissions first
+    const permissionCheck$ = user ?
+      this.authService.hasPermission('User', 'Update') :
+      this.authService.hasPermission('User', 'Create');
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.loadUsers();
+    permissionCheck$
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(hasPermission => {
+          if (!hasPermission) {
+            this.snackBar.open('Permessi insufficienti', 'Chiudi', { duration: 3000 });
+            return of(null);
+          }
+
+          // Importa il dialog component dinamicamente
+          return import('./dialog/user-dialog/user-dialog.component').then(({ UserDialogComponent }) => {
+            const dialogRef = this.dialog.open(UserDialogComponent, {
+              width: '600px',
+              maxWidth: '90vw',
+              data: { user, securityGroups: this.securityGroups() }
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+              if (result) {
+                this.loadUsers();
+              }
+            });
+
+            return dialogRef;
+          });
+        })
+      )
+      .subscribe();
+  }
+
+  resetPassword(user: User): void {
+    this.authService.hasPermission('User', 'Update')
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(hasPermission => {
+          if (!hasPermission) {
+            this.snackBar.open('Permessi insufficienti', 'Chiudi', { duration: 3000 });
+            return of(null);
+          }
+
+          const confirmed = confirm(`Vuoi resettare la password per l'utente ${user.fullName}?`);
+          if (!confirmed) {
+            return of(null);
+          }
+
+          const newPassword = this.generateTemporaryPassword();
+          return this.userService.resetPassword(user.id, newPassword);
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          if (result) {
+            this.snackBar.open(
+              `Password resettata. Nuova password: ${this.generateTemporaryPassword()}`,
+              'Chiudi',
+              { duration: 10000 }
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Errore durante il reset della password:', error);
+          this.snackBar.open('Errore durante il reset della password', 'Chiudi', { duration: 3000 });
         }
       });
-    });
   }
 
-  async resetPassword(user: User): Promise<void> {
-    const confirmed = confirm(`Vuoi resettare la password per l'utente ${user.fullName}?`);
-    if (confirmed) {
-      try {
-        const newPassword = this.generateTemporaryPassword();
-        await this.userService.resetPassword(user.id, newPassword).toPromise();
+  deleteUser(user: User): void {
+    this.authService.hasPermission('User', 'Delete')
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(hasPermission => {
+          if (!hasPermission) {
+            this.snackBar.open('Permessi insufficienti', 'Chiudi', { duration: 3000 });
+            return of(null);
+          }
 
-        this.snackBar.open(
-          `Password resettata. Nuova password: ${newPassword}`,
-          'Chiudi',
-          { duration: 10000 }
-        );
-      } catch (error) {
-        console.error('Errore durante il reset della password:', error);
-        this.snackBar.open('Errore durante il reset della password', 'Chiudi', { duration: 3000 });
-      }
-    }
-  }
+          if (user.id === 1) {
+            this.snackBar.open('Non è possibile eliminare l\'amministratore di sistema', 'Chiudi', { duration: 3000 });
+            return of(null);
+          }
 
-  async deleteUser(user: User): Promise<void> {
-    const confirmed = confirm(`Sei sicuro di voler eliminare l'utente ${user.fullName}?`);
-    if (confirmed) {
-      try {
-        await this.userService.deleteUser(user.id).toPromise();
-        this.snackBar.open('Utente eliminato con successo', 'Chiudi', { duration: 3000 });
-        this.loadUsers();
-      } catch (error: any) {
-        console.error('Errore durante l\'eliminazione dell\'utente:', error);
-        const message = error?.error?.message || 'Errore durante l\'eliminazione dell\'utente';
-        this.snackBar.open(message, 'Chiudi', { duration: 3000 });
-      }
-    }
+          const confirmed = confirm(`Sei sicuro di voler eliminare l'utente ${user.fullName}?`);
+          if (!confirmed) {
+            return of(null);
+          }
+
+          return this.userService.deleteUser(user.id);
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          if (result) {
+            this.snackBar.open('Utente eliminato con successo', 'Chiudi', { duration: 3000 });
+            this.loadUsers();
+          }
+        },
+        error: (error) => {
+          console.error('Errore durante l\'eliminazione dell\'utente:', error);
+          const message = error?.error?.message || 'Errore durante l\'eliminazione dell\'utente';
+          this.snackBar.open(message, 'Chiudi', { duration: 3000 });
+        }
+      });
   }
 
   getInitials(fullName: string): string {
@@ -161,5 +239,4 @@ export default class UsersComponent implements OnInit {
     }
     return password;
   }
-
 }

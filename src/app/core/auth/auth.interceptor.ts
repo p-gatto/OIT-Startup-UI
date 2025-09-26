@@ -1,10 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-
-import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
 
   // Non aggiungere il token alle richieste di login/refresh
   const skipUrls = ['/auth/login', '/auth/refresh', '/auth/logout'];
@@ -12,8 +8,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  // Aggiungi il token all'header Authorization
-  const token = authService.getAccessToken();
+  // Ottieni il token direttamente dal localStorage invece di usare AuthService
+  // per evitare la dipendenza circolare
+  const token = localStorage.getItem('accessToken');
+
   if (token) {
     const authReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`)
@@ -22,4 +20,5 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   return next(req);
+
 };

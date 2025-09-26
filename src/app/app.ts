@@ -1,8 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 
-import { filter } from 'rxjs';
+import { Subject, takeUntil, filter } from 'rxjs';
 
 import { MatSidenavModule } from '@angular/material/sidenav';
 
@@ -83,12 +83,10 @@ import { AuthService } from './core/auth/auth.service';
 
     .content-wrapper {
         flex: 1;
-        /* padding: 1rem; */
         overflow-y: auto;
         min-width: 100%;
     }
 
-    /* Nascondi il padding del content per pagine pubbliche nel layout principale */
     .public-route .content-wrapper {
         padding: 0;
     }
@@ -104,17 +102,17 @@ import { AuthService } from './core/auth/auth.service';
     }
   `
 })
-export class App {
-
-  private authService = inject(AuthService);
-  private router = inject(Router);
+export class App implements OnDestroy {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroy$ = new Subject<void>();
 
   protected readonly title = signal('OIT Startup');
   protected readonly sidebarOpen = signal(false);
 
-  // Computed per verificare l'autenticazione
-  protected readonly isAuthenticated = this.authService.isAuthenticated;
-  protected readonly currentUser = this.authService.currentUser;
+  // Use RxJS streams instead of computed signals for auth
+  protected readonly isAuthenticated = signal(false);
+  protected readonly currentUser = signal(null);
 
   // Signals per la gestione delle pagine pubbliche
   private currentRoute = signal('');
@@ -126,9 +124,19 @@ export class App {
   });
 
   constructor() {
+    // Subscribe to auth changes
+    this.authService.isAuthenticated$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isAuth => this.isAuthenticated.set(isAuth));
+
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user: any) => this.currentUser.set(user));
+
     // Traccia i cambiamenti di rotta
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
     ).subscribe((event: NavigationEnd) => {
       this.currentRoute.set(event.url);
 
@@ -140,6 +148,11 @@ export class App {
 
     // Imposta la rotta iniziale
     this.currentRoute.set(this.router.url);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   toggleSidebar(): void {
@@ -157,7 +170,8 @@ export class App {
   }
 
   onLogout(): void {
-    this.authService.logout();
+    this.authService.logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
   }
-
 }
