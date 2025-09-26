@@ -59,17 +59,17 @@
                         </td>
                     </ng-container>
 
-                    <ng-container matColumnDef="securityGroups">
+                    <ng-container matColumnDef="Groups">
                         <th mat-header-cell *matHeaderCellDef>Gruppi Sicurezza</th>
                         <td mat-cell *matCellDef="let user">
                             <div class="chips-container">
-                                @for (group of user.securityGroups; track group.id) {
+                                @for (group of user.groups; track group.id) {
                                 <mat-chip [class]="getGroupChipClass(group)"
                                     [matTooltip]="group.description || group.name">
                                     {{ group.name }}
                                 </mat-chip>
                                 }
-                                @if (user.securityGroups.length === 0) {
+                                @if (user.groups.length === 0) {
                                 <span class="no-groups">Nessun gruppo</span>
                                 }
                             </div>

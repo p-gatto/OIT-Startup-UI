@@ -61,7 +61,7 @@ export default class UsersComponent implements OnInit, OnDestroy {
   protected readonly canManageUsers$ = this.authService.hasPermission('User', 'Create');
   protected readonly canDeleteUsers$ = this.authService.hasPermission('User', 'Delete');
 
-  displayedColumns: string[] = ['avatar', 'fullName', 'email', 'securityGroups', 'status', 'lastLogin', 'actions'];
+  displayedColumns: string[] = ['avatar', 'fullName', 'email', 'Groups', 'status', 'lastLogin', 'actions'];
 
   ngOnInit(): void {
     this.loadUsers();

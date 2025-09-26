@@ -245,13 +245,14 @@ export class AuthService {
         take(1),
         switchMap(apiUrl =>
           this.http.post<void>(`${apiUrl}/api/auth/logout`, { refreshToken }).pipe(
+            map(() => void 0), // Assicura che il tipo sia sempre void
             catchError(error => {
               console.warn('Logout request failed:', error);
-              return of(null); // Continue with local cleanup
+              return of(void 0); // Ritorna void invece di null
             })
           )
         )
-      ) : of(null);
+      ) : of(void 0); // Ritorna void invece di null
 
     return logoutRequest$.pipe(
       tap(() => {

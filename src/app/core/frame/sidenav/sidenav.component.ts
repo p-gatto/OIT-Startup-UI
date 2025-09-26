@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output, signal, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -6,6 +6,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule, MatNavList } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
+
+import { Subject, takeUntil } from 'rxjs';
 
 import { ConfigService } from '../../config/config.service';
 import { MenuSection } from './menu-section.model';
@@ -23,87 +25,22 @@ import { MenuGroupDto } from '../../management/menu/menu.model';
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.css'
 })
-export class SidenavComponent {
+export class SidenavComponent implements OnInit, OnDestroy {
 
-  router = inject(Router);
-  menuService = inject(MenuService);
-  configService = inject(ConfigService);
+  private router = inject(Router);
+  private menuService = inject(MenuService);
+  private configService = inject(ConfigService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   @Output() navigationClick = new EventEmitter<string>();
 
+  // Signals per gestire lo stato
+  protected menu = signal<MenuGroupDto[]>([]);
+  protected loading = signal(false);
+
   expandedGroups: Set<string> = new Set();
-  loading = false;
-
-  menuSections: MenuSection[] = [
-    {
-      title: 'Credenziali',
-      items: [
-        { title: 'Tutte le credenziali', icon: 'list', route: '/credentials', queryParams: {} },
-        { title: 'Credenziali attive', icon: 'check_circle', route: '/credentials', queryParams: { active: true } },
-        { title: 'Credenziali scadute', icon: 'error', route: '/credentials', queryParams: { expired: true } },
-        { title: 'Credenziali recenti', icon: 'update', route: '/credentials', queryParams: { sort: 'created', sortDirection: 'desc' } }
-      ]
-    },
-    {
-      title: 'Dashboard',
-      items: [
-        { title: 'Panoramica', icon: 'dashboard', route: '/dashboard', queryParams: {} },
-        { title: 'Statistiche', icon: 'bar_chart', route: '/stats', queryParams: {} }
-      ]
-    },
-    {
-      title: 'Gestione',
-      items: [
-        {
-          title: 'Utenti',
-          icon: 'people',
-          route: '',
-          queryParams: {},
-          children: [
-            { title: 'Lista Utenti', icon: 'list', route: '/users/list', queryParams: {} },
-            { title: 'Aggiungi Utente', icon: 'person_add', route: '/users/add', queryParams: {} },
-            { title: 'Ruoli & Permessi', icon: 'admin_panel_settings', route: '/users/roles', queryParams: {} }
-          ]
-        },
-        {
-          title: 'Prodotti',
-          icon: 'inventory',
-          route: '',
-          queryParams: {},
-          children: [
-            { title: 'Catalogo', icon: 'catalog', route: '/products/catalog', queryParams: {} },
-            { title: 'Categorie', icon: 'category', route: '/products/categories', queryParams: {} },
-            { title: 'Inventario', icon: 'warehouse', route: '/products/inventory', queryParams: {} }
-          ]
-        }
-      ]
-    },
-    {
-      title: 'Analisi',
-      items: [
-        { title: 'Reports', icon: 'assessment', route: '/reports', queryParams: {} },
-        {
-          title: 'Analytics',
-          icon: 'analytics',
-          children: [
-            { title: 'Panoramica', icon: 'insights', route: '/analytics/overview', queryParams: {} },
-            { title: 'Vendite', icon: 'trending_up', route: '/analytics/sales', queryParams: {} },
-            { title: 'Traffico', icon: 'traffic', route: '/analytics/traffic', queryParams: {} }
-          ]
-        }
-      ]
-    },
-    {
-      title: 'Sistema',
-      items: [
-        { title: 'Configurazione', icon: 'tune', route: '/config', queryParams: {} },
-        { title: 'Log Sistema', icon: 'list_alt', route: '/logs', queryParams: {} },
-        { title: 'Supporto', icon: 'help', route: '/support', queryParams: {} }
-      ]
-    }
-  ];
-
-  menu: MenuGroupDto[] = [];
+  private expandedSections = new Set<string>();
 
   constructor() {
 
@@ -117,38 +54,75 @@ export class SidenavComponent {
       }
     });
 
+    // Espandi automaticamente alcune sezioni all'inizializzazione
+    this.expandedSections.add('Gestione'); // Espandi la sezione Gestione di default
   }
 
-  loadMenu() {
-    this.loading = true;
-    this.menuService.getMenuStructure().subscribe({
-      next: (menuResult) => {
-        this.menu = menuResult;
-        console.log('this.menu da *** sidenav Component ==> ', this.menu);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading Menu!!!', error);
-        this.loading = false;
+  ngOnInit(): void {
+    this.initializeMenu();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initializeMenu(): void {
+    // Prima inizializza con un array vuoto
+    this.menu.set([]);
+
+    // Poi sottoscriviti ai cambiamenti della configurazione
+    this.configService.config$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(config => {
+      if (config) {
+        console.log('Config received in Sidenav:', config);
+        // Usa setTimeout per evitare l'errore ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.loadMenu();
+        });
       }
     });
   }
 
-  toggleGroup(groupTitle: string) {
+  private loadMenu(): void {
+    this.loading.set(true);
 
+    this.menuService.getMenuStructure().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (menuResult) => {
+        // Usa setTimeout per assicurarsi che l'aggiornamento avvenga nel prossimo ciclo di change detection
+        setTimeout(() => {
+          this.menu.set(menuResult);
+          this.loading.set(false);
+          console.log('Menu loaded in Sidenav:', menuResult);
+          this.cdr.detectChanges(); // Forza la detection delle modifiche
+        });
+      },
+      error: (error) => {
+        console.error('Error loading Menu in Sidenav:', error);
+        setTimeout(() => {
+          this.loading.set(false);
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  toggleGroup(groupTitle: string): void {
     if (this.expandedGroups.has(groupTitle)) {
       this.expandedGroups.delete(groupTitle);
     } else {
       this.expandedGroups.add(groupTitle);
     }
-
   }
 
   isGroupExpanded(groupTitle: string): boolean {
     return this.expandedGroups.has(groupTitle);
   }
 
-  navigate(route: string) {
+  navigate(route: string): void {
     this.navigationClick.emit(route);
   }
 
@@ -156,10 +130,6 @@ export class SidenavComponent {
     this.router.navigate([route], { queryParams });
     this.navigationClick.emit(route);
   }
-
-  /////////////////////////////////////////////////
-  // Mappa per tenere traccia delle sezioni espanse
-  private expandedSections = new Set<string>();
 
   // Metodo per espandere/collassare una sezione
   toggleSection(sectionTitle: string): void {
@@ -176,8 +146,8 @@ export class SidenavComponent {
   }
 
   // Metodo per verificare se è l'ultima sezione (per il divider)
-  isLastSection(menuItem: any): boolean {
-    return this.menu.indexOf(menuItem) === this.menu.length - 1;
+  isLastSection(menuItem: MenuGroupDto): boolean {
+    const currentMenu = this.menu();
+    return currentMenu.indexOf(menuItem) === currentMenu.length - 1;
   }
-
 }

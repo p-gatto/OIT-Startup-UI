@@ -5,11 +5,16 @@
     </div>
 
     <div class="sidebar-content">
-        @for (menuItem of menu; track menuItem.id) {
+        @if (loading()) {
+        <div class="loading-container">
+            <p>Caricamento menu...</p>
+        </div>
+        } @else {
+        @for (menuItem of menu(); track menuItem.id) {
         <div class="menu-section">
             <!-- Gruppo principale come tendina -->
             <div class="section-header" (click)="toggleSection(menuItem.title)">
-                <div class="section-title">{{ menuItem.title }}</div>
+                <div class="section-title">{{ menuItem.title || 'Menu' }}</div>
                 <mat-icon class="section-expand-icon" [class.expanded]="isSectionExpanded(menuItem.title)">
                     expand_more
                 </mat-icon>
@@ -18,21 +23,22 @@
             <!-- Contenuto del gruppo (collassabile) -->
             <div class="section-content" [class.expanded]="isSectionExpanded(menuItem.title)">
                 <mat-nav-list class="section-list">
-                    @for (item of menuItem.items; track item.id) {
+                    @for (item of menuItem.items || []; track item.id) {
                     <div class="menu-item-container">
                         <!-- Item senza figli -->
-                        @if (!item.children) {
-                        <mat-list-item (click)="navigateTo(item.route!, item.queryParams)" class="menu-item">
-                            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-                            <span matListItemTitle>{{ item.title }}</span>
+                        @if (!item.children || item.children.length === 0) {
+                        <mat-list-item (click)="navigateTo(item.route || '/', item.queryParams || {})"
+                            class="menu-item">
+                            <mat-icon matListItemIcon>{{ item.icon || 'menu' }}</mat-icon>
+                            <span matListItemTitle>{{ item.title || 'Menu Item' }}</span>
                         </mat-list-item>
                         }
                         <!-- Item con figli (2° livello) -->
-                        @if (item.children) {
+                        @if (item.children && item.children.length > 0) {
                         <div class="menu-group">
                             <div class="parent-item" (click)="toggleGroup(item.title)">
-                                <mat-icon class="parent-icon">{{ item.icon }}</mat-icon>
-                                <span class="parent-title">{{ item.title }}</span>
+                                <mat-icon class="parent-icon">{{ item.icon || 'folder' }}</mat-icon>
+                                <span class="parent-title">{{ item.title || 'Menu Group' }}</span>
                                 <mat-icon class="expand-icon" [class.expanded]="isGroupExpanded(item.title)">
                                     expand_more
                                 </mat-icon>
@@ -40,9 +46,10 @@
 
                             <div class="children-container" [class.expanded]="isGroupExpanded(item.title)">
                                 @for (child of item.children; track child.id) {
-                                <mat-list-item (click)="navigateTo(child.route!, child.queryParams)" class="child-item">
-                                    <mat-icon matListItemIcon>{{ child.icon }}</mat-icon>
-                                    <span matListItemTitle>{{ child.title }}</span>
+                                <mat-list-item (click)="navigateTo(child.route || '/', child.queryParams || {})"
+                                    class="child-item">
+                                    <mat-icon matListItemIcon>{{ child.icon || 'menu' }}</mat-icon>
+                                    <span matListItemTitle>{{ child.title || 'Child Item' }}</span>
                                 </mat-list-item>
                                 }
                             </div>
@@ -58,55 +65,13 @@
             }
         </div>
         }
+        }
+
+        @if (menu().length === 0 && !loading()) {
+        <div class="empty-menu">
+            <p>Nessun menu disponibile</p>
+        </div>
+        }
     </div>
 
 </div>
-
-
-<!-- <div class="sidebar-container">
-
-    <div class="sidebar-header">
-        <h3>Menu Navigazione</h3>
-    </div>
-
-    <div class="sidebar-content">
-
-        <div *ngFor="let menuItem of menu" class="menu-section">
-            <div class="section-title">{{ menuItem.title }}</div>
-
-            <mat-nav-list class="section-list"> 
-                <div *ngFor="let item of menuItem.items" class="menu-item-container">   -->
-<!-- Item senza figli -->
-<!--              <mat-list-item *ngIf="!item.children" (click)="navigateTo(item.route!, item.queryParams)"
-                        class="menu-item">
-                        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-                        <span matListItemTitle>{{ item.title }}</span>
-                    </mat-list-item> -->
-
-<!-- Item con figli (2° livello) -->
-<!--                     <div *ngIf="item.children" class="menu-group">
-                        <div class="parent-item" (click)="toggleGroup(item.title)">
-                            <mat-icon class="parent-icon">{{ item.icon }}</mat-icon>
-                            <span class="parent-title">{{ item.title }}</span>
-                            <mat-icon class="expand-icon" [class.expanded]="isGroupExpanded(item.title)">
-                                expand_more
-                            </mat-icon>
-                        </div>
-
-                        <div class="children-container" [class.expanded]="isGroupExpanded(item.title)">
-                            <mat-list-item *ngFor="let child of item.children"
-                                (click)="navigateTo(item.route!, item.queryParams)" class="child-item">
-                                <mat-icon matListItemIcon>{{ child.icon }}</mat-icon>
-                                <span matListItemTitle>{{ child.title }}</span>
-                            </mat-list-item>
-                        </div>
-                    </div>
-                </div>
-            </mat-nav-list>
-
-            <mat-divider class="section-divider"></mat-divider>
-        </div>
-
-    </div>
-
-</div> -->

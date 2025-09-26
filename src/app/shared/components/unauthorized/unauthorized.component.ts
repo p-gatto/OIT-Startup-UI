@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -26,7 +26,15 @@ export default class UnauthorizedComponent implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
 
-  protected readonly isAuthenticated$ = this.authService.isAuthenticated$;
+  // Signals per compatibilità con il template
+  protected readonly isAuthenticated = signal<boolean>(false);
+
+  constructor() {
+    // Sottoscrivi ai cambiamenti dello stato di autenticazione
+    this.authService.isAuthenticated$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isAuth => this.isAuthenticated.set(isAuth));
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
