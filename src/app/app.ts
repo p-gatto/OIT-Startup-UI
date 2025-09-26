@@ -83,7 +83,7 @@ import { AuthService } from './core/auth/auth.service';
 
     .content-wrapper {
         flex: 1;
-        padding: 1rem;
+        /* padding: 1rem; */
         overflow-y: auto;
         min-width: 100%;
     }

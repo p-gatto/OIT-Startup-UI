@@ -27,7 +27,7 @@ export default class UnauthorizedComponent {
   protected readonly isAuthenticated = this.authService.isAuthenticated;
 
   goHome(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/home']);
   }
 
   goBack(): void {
