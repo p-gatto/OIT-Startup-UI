@@ -24,31 +24,10 @@ import { AuthService } from '../../auth/auth.service';
     MatMenuModule
   ],
   templateUrl: './navbar.component.html',
-  styleUrls: [`./navbar.component.css`],
-  styles: [`
-    .user-info-menu {
-      pointer-events: none;
-      opacity: 0.8;
-    }
-    
-    .user-details {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    
-    .user-name {
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
-    
-    .user-email {
-      font-size: 0.75rem;
-      color: #666;
-    }
-  `]
+  styleUrls: [`./navbar.component.css`]
 })
 export class NavbarComponent implements OnDestroy {
+
   private readonly authService = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
 

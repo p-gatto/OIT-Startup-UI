@@ -17,7 +17,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Group } from '../../auth/models/group.model';
 import { Permission } from '../../auth/models/permission.model';
 
-import { UserService } from '../users/user.service';
+import { GroupsService } from './groups.service';
 
 import { SecurityGroupDialog } from './dialog/security-group-dialog/security-group-dialog.component';
 import { GroupPermissionsDialog } from './dialog/group-permissions-dialog/group-permissions-dialog.component';
@@ -44,25 +44,25 @@ import { GroupPermissionsDialog } from './dialog/group-permissions-dialog/group-
 })
 export default class GroupsComponent implements OnInit {
 
-  private userService = inject(UserService);
+  private groupsService = inject(GroupsService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
   // Signals
-  protected securityGroups = signal<Group[]>([]);
+  protected groups = signal<Group[]>([]);
   protected loading = signal(true);
   protected permissions = signal<Permission[]>([]);
 
   ngOnInit(): void {
-    this.loadSecurityGroups();
+    this.loadGroups();
     this.loadPermissions();
   }
 
-  private async loadSecurityGroups(): Promise<void> {
+  private async loadGroups(): Promise<void> {
     try {
       this.loading.set(true);
-      const groups = await this.userService.getGroups().toPromise();
-      this.securityGroups.set(groups || []);
+      const groups = await this.groupsService.getGroups().toPromise();
+      this.groups.set(groups || []);
     } catch (error) {
       console.error('Errore durante il caricamento dei gruppi di sicurezza:', error);
       this.snackBar.open('Errore durante il caricamento dei gruppi', 'Chiudi', { duration: 3000 });
@@ -73,7 +73,7 @@ export default class GroupsComponent implements OnInit {
 
   private async loadPermissions(): Promise<void> {
     try {
-      const permissions = await this.userService.getPermissions().toPromise();
+      const permissions = await this.groupsService.getPermissions().toPromise();
       this.permissions.set(permissions || []);
     } catch (error) {
       console.error('Errore durante il caricamento dei permessi:', error);
@@ -88,7 +88,7 @@ export default class GroupsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadSecurityGroups();
+        this.loadGroups();
       }
     });
   }
@@ -101,7 +101,7 @@ export default class GroupsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadSecurityGroups();
+        this.loadGroups();
       }
     });
   }
@@ -120,9 +120,9 @@ export default class GroupsComponent implements OnInit {
     const confirmed = confirm(`Sei sicuro di voler eliminare il gruppo "${group.name}"?`);
     if (confirmed) {
       try {
-        await this.userService.deleteGroup(group.id).toPromise();
+        await this.groupsService.deleteGroup(group.id).toPromise();
         this.snackBar.open('Gruppo eliminato con successo', 'Chiudi', { duration: 3000 });
-        this.loadSecurityGroups();
+        this.loadGroups();
       } catch (error: any) {
         console.error('Errore durante l\'eliminazione del gruppo:', error);
         const message = error?.error?.message || 'Errore durante l\'eliminazione del gruppo';

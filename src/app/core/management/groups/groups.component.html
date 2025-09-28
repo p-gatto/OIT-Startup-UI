@@ -24,7 +24,7 @@
             </div>
             } @else {
             <mat-accordion class="groups-accordion" multi>
-                @for (group of securityGroups(); track group.id) {
+                @for (group of groups(); track group.id) {
                 <mat-expansion-panel class="group-panel">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
@@ -89,7 +89,7 @@
                 }
             </mat-accordion>
 
-            @if (securityGroups().length === 0) {
+            @if (groups().length === 0) {
             <div class="no-data">
                 <mat-icon>security</mat-icon>
                 <h3>Nessun gruppo di sicurezza trovato</h3>

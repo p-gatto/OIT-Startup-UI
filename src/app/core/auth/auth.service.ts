@@ -30,6 +30,8 @@ import {
   startWith
 } from 'rxjs/operators';
 
+import { environment } from "../../../environments/environment";
+
 import { ConfigService } from '../config/config.service';
 import { User } from './models/user.model';
 import { LoginRequest } from './models/login-request.model';
@@ -53,6 +55,7 @@ interface AuthState {
   providedIn: 'root'
 })
 export class AuthService {
+
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly configService = inject(ConfigService);
@@ -74,7 +77,7 @@ export class AuthService {
 
   // API Base URL come Observable
   private readonly apiBaseUrl$ = this.configService.config$.pipe(
-    map(config => config?.apiBaseUrl ?? 'http://localhost:5000'),
+    map(config => config?.apiBaseUrl ?? environment.apiBaseUrl),
     distinctUntilChanged(),
     shareReplay(1)
   );
@@ -140,11 +143,16 @@ export class AuthService {
   });
 
   constructor() {
+    this.apiBaseUrl$.subscribe({
+      next: (apiBaseConfig) => console.log('apiBaseConfig(authService - constructor): ', apiBaseConfig),
+      error: (err) => console.log('Errore: ', err)
+    })
     this.initializeAuth();
     this.setupAutoRefresh();
   }
 
   private initializeAuth(): void {
+
     // Sync BehaviorSubjects with signals
     this.currentUser$.subscribe(user => this.currentUser.set(user));
     this.isAuthenticated$.subscribe(auth => this.isAuthenticated.set(auth));
@@ -152,6 +160,7 @@ export class AuthService {
 
     // Initialize with stored tokens
     const tokenData = this.tokenData$.value;
+
     if (this.isTokenValid(tokenData)) {
       this.updateAuthState({ isAuthenticated: true });
       this.loadCurrentUser().subscribe();

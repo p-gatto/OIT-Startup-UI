@@ -20,8 +20,9 @@ import { Subject, takeUntil, finalize, switchMap, of } from 'rxjs';
 
 import { Group } from '../../auth/models/group.model';
 import { User } from '../../auth/models/user.model';
-import { UserService } from './user.service';
+import { UsersService } from './users.service';
 import { AuthService } from '../../auth/auth.service';
+import { GroupsService } from '../groups/groups.service';
 
 @Component({
   selector: 'app-users',
@@ -46,10 +47,13 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './users.component.scss'
 })
 export default class UsersComponent implements OnInit, OnDestroy {
-  private readonly userService = inject(UserService);
+
+  private readonly usersService = inject(UsersService);
+  private readonly groupsService = inject(GroupsService);
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+
   private readonly destroy$ = new Subject<void>();
 
   // Signals
@@ -65,7 +69,7 @@ export default class UsersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUsers();
-    this.loadSecurityGroups();
+    this.loadGroups();
   }
 
   ngOnDestroy(): void {
@@ -76,7 +80,7 @@ export default class UsersComponent implements OnInit, OnDestroy {
   private loadUsers(): void {
     this.loading.set(true);
 
-    this.userService.getUsers()
+    this.usersService.getUsers()
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.loading.set(false))
@@ -90,8 +94,8 @@ export default class UsersComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadSecurityGroups(): void {
-    this.userService.getGroups()
+  private loadGroups(): void {
+    this.groupsService.getGroups()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (groups) => this.securityGroups.set(groups || []),
@@ -153,7 +157,7 @@ export default class UsersComponent implements OnInit, OnDestroy {
           }
 
           const newPassword = this.generateTemporaryPassword();
-          return this.userService.resetPassword(user.id, newPassword);
+          return this.usersService.resetPassword(user.id, newPassword);
         })
       )
       .subscribe({
@@ -193,7 +197,7 @@ export default class UsersComponent implements OnInit, OnDestroy {
             return of(null);
           }
 
-          return this.userService.deleteUser(user.id);
+          return this.usersService.deleteUser(user.id);
         })
       )
       .subscribe({
@@ -239,4 +243,5 @@ export default class UsersComponent implements OnInit, OnDestroy {
     }
     return password;
   }
+
 }

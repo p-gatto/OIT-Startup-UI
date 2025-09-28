@@ -2,11 +2,13 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { environment } from "../../../../environments/environment";
 
 import { ConfigService } from '../../config/config.service';
 
 import { CreateMenuGroupDto, CreateMenuItemDto, MenuGroupDto, MenuItemDto, UpdateMenuItemDto } from './menu.model';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,7 @@ export class MenuService {
   http = inject(HttpClient);
   configService = inject(ConfigService);
 
-  menuBaseUrl = signal('http://localhost:5000');
+  menuBaseUrl = signal(environment.apiBaseUrl);
 
   private menuStructureSubject = new BehaviorSubject<MenuGroupDto[]>([]);
   public menuStructure$ = this.menuStructureSubject.asObservable();

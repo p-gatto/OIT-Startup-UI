@@ -15,8 +15,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Permission } from '../../../../auth/models/permission.model';
 import { Group } from '../../../../auth/models/group.model';
 import { PermissionGroup } from '../../../../auth/models/permission-group.model';
+import { GroupsService } from '../../groups.service';
 
-import { UserService } from '../../../users/user.service';
 
 interface DialogData {
   group: Group;
@@ -43,7 +43,7 @@ interface DialogData {
 })
 export class GroupPermissionsDialog implements OnInit {
 
-  private userService = inject(UserService);
+  private groupsService = inject(GroupsService);
   private snackBar = inject(MatSnackBar);
 
   // Form controls
@@ -179,7 +179,7 @@ export class GroupPermissionsDialog implements OnInit {
 
     try {
       const selectedIds = Array.from(this.selectedPermissionIds());
-      await this.userService.assignPermissionsToGroup(this.data.group.id, selectedIds).toPromise();
+      await this.groupsService.assignPermissionsToGroup(this.data.group.id, selectedIds).toPromise();
 
       this.snackBar.open('Permessi aggiornati con successo', 'Chiudi', { duration: 3000 });
       this.dialogRef.close(true);

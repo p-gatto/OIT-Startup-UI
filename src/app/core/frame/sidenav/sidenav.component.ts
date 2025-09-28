@@ -31,6 +31,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private menuService = inject(MenuService);
   private configService = inject(ConfigService);
   private cdr = inject(ChangeDetectorRef);
+
   private destroy$ = new Subject<void>();
 
   @Output() navigationClick = new EventEmitter<string>();

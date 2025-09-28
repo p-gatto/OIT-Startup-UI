@@ -10,8 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { GroupsService } from '../../groups.service';
 import { Group } from '../../../../auth/models/group.model';
-import { UserService } from '../../../users/user.service';
 import { UpdateGroup } from '../../../../auth/models/update-group.model';
 import { CreateGroup } from '../../../../auth/models/create-group.model';
 
@@ -37,7 +37,7 @@ interface DialogData {
 })
 export class SecurityGroupDialog {
 
-  private userService = inject(UserService);
+  private groupsService = inject(GroupsService);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
 
@@ -86,7 +86,7 @@ export class SecurityGroupDialog {
             isActive: formValue.isActive
           };
 
-          await this.userService.updateGroup(this.data.group.id, updateData).toPromise();
+          await this.groupsService.updateGroup(this.data.group.id, updateData).toPromise();
           this.snackBar.open('Gruppo aggiornato con successo', 'Chiudi', { duration: 3000 });
         } else {
           const createData: CreateGroup = {
@@ -95,7 +95,7 @@ export class SecurityGroupDialog {
             isActive: formValue.isActive
           };
 
-          await this.userService.createGroup(createData).toPromise();
+          await this.groupsService.createGroup(createData).toPromise();
           this.snackBar.open('Gruppo creato con successo', 'Chiudi', { duration: 3000 });
         }
 

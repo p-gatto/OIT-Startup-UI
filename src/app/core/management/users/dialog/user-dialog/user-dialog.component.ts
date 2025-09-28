@@ -10,7 +10,7 @@ import { User } from '../../../../auth/models/user.model';
 import { CreateUser } from '../../../../auth/models/create-user.model';
 import { UpdateUser } from '../../../../auth/models/update-user.model';
 
-import { UserService } from '../../user.service';
+import { UsersService } from '../../users.service';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -45,7 +45,7 @@ interface DialogData {
 })
 export class UserDialogComponent implements OnInit {
 
-  private userService = inject(UserService);
+  private usersService = inject(UsersService);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
 
@@ -123,7 +123,7 @@ export class UserDialogComponent implements OnInit {
             emailConfirmed: formValue.emailConfirmed
           };
 
-          await this.userService.updateUser(this.data.user.id, updateData).toPromise();
+          await this.usersService.updateUser(this.data.user.id, updateData).toPromise();
           this.snackBar.open('Utente aggiornato con successo', 'Chiudi', { duration: 3000 });
         } else {
           const createData: CreateUser = {
@@ -137,7 +137,7 @@ export class UserDialogComponent implements OnInit {
             emailConfirmed: formValue.emailConfirmed
           };
 
-          await this.userService.createUser(createData).toPromise();
+          await this.usersService.createUser(createData).toPromise();
           this.snackBar.open('Utente creato con successo', 'Chiudi', { duration: 3000 });
         }
 
